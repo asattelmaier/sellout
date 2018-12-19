@@ -1,2 +1,5 @@
 venv
 .idea
+dax_tickers.pickle
+stock_data
+config.json
