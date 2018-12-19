@@ -11,9 +11,11 @@ class Dax:
     """Holds all information regarding to DAX"""
     TICKERS_URL = 'https://en.wikipedia.org/wiki/DAX'
     TICKERS_FILE = Path('dax_tickers.pickle')
+    REMOTE_STOCK_DATA = 'FSE/DBK_X'
     STOCK_DATA_PATH = Path('stock_data')
     DAX_DATA_FILE = Path('dax_data.csv')
     TABLE_INDEX = 'Date'
+    table = pd.DataFrame()
     tickers = []
     ticker_file_suffix = '.csv'
     authtoken = ""
@@ -57,37 +59,42 @@ class Dax:
             ticker_file = self.get_ticker_path(ticker)
 
             if not ticker_file.exists():
-                df = quandl.get('FSE/DBK_X', authtoken=self.authtoken, ticker=ticker, start_date=start_date,
-                                end_date=end_date)
+                remote_stock_table = quandl.get(self.REMOTE_STOCK_DATA, authtoken=self.authtoken, ticker=ticker,
+                                                start_date=start_date,
+                                                end_date=end_date)
 
-                df = self.set_index_to_table(df)
+                remote_stock_table = self.set_index_to_table(remote_stock_table)
 
-                df.to_csv(ticker_file)
+                remote_stock_table.to_csv(ticker_file)
             else:
                 print('Already have {}'.format(ticker_file))
 
     def compile_data(self):
-        main_df = pd.DataFrame()
-
         for count, ticker in enumerate(self.tickers):
-            ticker_file = self.get_ticker_path(ticker)
-            df = pd.read_csv(ticker_file)
+            tickers_file = self.get_ticker_path(ticker)
+            tickers_table = pd.read_csv(tickers_file)
 
-            df = self.set_index_to_table(df)
+            tickers_table = self.set_index_to_table(tickers_table)
 
-            df.rename(columns={'Close': ticker}, inplace=True)
-            df = df[[ticker]]
+            tickers_table.rename(columns={'Close': ticker}, inplace=True)
+            tickers_table = tickers_table[[ticker]]
 
-            if main_df.empty:
-                main_df = df
-            else:
-                main_df = main_df.join(df, how='outer')
+            self.append_to_data(tickers_table)
 
             if count % 10 == 0:
                 print(count)
 
-        print(main_df.head())
-        main_df.to_csv(self.DAX_DATA_FILE)
+        print(self.table.head())
+        self.write_data_to_file()
+
+    def append_to_data(self, table):
+        if self.table.empty:
+            self.table = table
+        else:
+            self.table = self.table.join(table, how='outer')
+
+    def write_data_to_file(self):
+        self.table.to_csv(self.DAX_DATA_FILE)
 
     def get_ticker_path(self, ticker):
         return self.STOCK_DATA_PATH / (ticker + self.ticker_file_suffix)
