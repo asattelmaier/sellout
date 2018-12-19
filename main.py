@@ -1,14 +1,9 @@
-from pathlib import Path
-import json
-
 from dax import Dax
+from config import Config
 
 if __name__ == '__main__':
-    CONFIG_FILE = Path('config.json')
-    with CONFIG_FILE.open(encoding='utf-8') as config_file:
-        config = json.load(config_file)
+    config_file = 'config.json'
+    config = Config(config_file)
 
-    AUTHTOKEN = config["AUTHTOKEN"]
-
-    dax = Dax(AUTHTOKEN)
+    dax = Dax(config.autthoken)
     dax.get_ticker_data()
