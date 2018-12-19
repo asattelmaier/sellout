@@ -5,7 +5,7 @@ import json
 class Config:
     """Holds the configuration."""
     config_file = ""
-    autthoken = ""
+    authtoken = ""
 
     def __init__(self, config_file):
         self.config_file = Path(config_file)
@@ -14,7 +14,7 @@ class Config:
         with self.config_file.open(encoding='utf-8') as config_file:
             config = json.load(config_file)
 
-        self.autthoken = config["AUTHTOKEN"]
+        self.authtoken = config["AUTHTOKEN"]
 
     @staticmethod
     def create_config(config_file):

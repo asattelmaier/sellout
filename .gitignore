@@ -3,3 +3,5 @@ venv
 dax_tickers.pickle
 stock_data
 config.json
+dax_data.csv
+__pycache__
